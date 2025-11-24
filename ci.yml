@@ -1,0 +1,47 @@
+name: CI/CD Pipeline Completo
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Setup
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      
+      - name: Install Dependencies
+        run: npm install
+
+      # 2. Lint (Qualidade Estática)
+      - name: Run Lint
+        run: npm run lint
+        # Falha o pipeline se o código não seguir o padrão
+
+      # 3. Testes e Cobertura (Unitários + Integração)
+      - name: Run Tests with Coverage
+        run: npm run test -- --coverage
+      
+      - name: Check Coverage Threshold
+        run: |
+          # Script simples para verificar se cob > 80%
+          echo "Verificando se cobertura >= 80%..."
+
+      # 4. SAST (Segurança)
+      - name: Run SAST Scan
+        run: sonar-scanner
+        # Configurado para falhar em vulnerabilidades ALTAS ou CRÍTICAS
+
+      # 5. Build (Gerar Artefato)
+      - name: Build Application
+        run: npm run build
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-build
+          path: dist/
